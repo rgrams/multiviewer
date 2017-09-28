@@ -1,0 +1,33 @@
+images {
+  image: "/main/common/textures/TEX_Cross_37.png"
+}
+images {
+  image: "/main/common/textures/TEX_Cross_64px.png"
+}
+images {
+  image: "/main/common/textures/TEX_Dot_Hard-ish.png"
+}
+images {
+  image: "/main/common/textures/TEX_Dot_Hard.png"
+}
+images {
+  image: "/main/common/textures/TEX_Dot_Hard_with glow.png"
+}
+images {
+  image: "/main/common/textures/TEX_Dot_Soft.png"
+}
+images {
+  image: "/main/common/textures/TEX_Square_1.png"
+}
+images {
+  image: "/main/common/textures/TEX_Square_64.png"
+}
+images {
+  image: "/main/common/textures/Triangle_64px.png"
+}
+images {
+  image: "/main/common/textures/highlight_box_1.png"
+}
+margin: 0
+extrude_borders: 0
+inner_padding: 0

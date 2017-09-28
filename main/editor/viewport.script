@@ -1,0 +1,64 @@
+
+local winman = require "main.framework.window_manager"
+
+local zoom = 0.9
+local bgSpriteSize = 64
+
+
+local function update_mouse(self)
+	self.mousePos.x, self.mousePos.y = winman.mouse_to_world(self.mouse_spos.x, self.mouse_spos.y)
+	self.mousePos = self.mousePos * winman.zoom + winman.camPos
+	msg.post("refs#refs", "update mouse", {pos = self.mousePos, move = self.moving, scale = self.scaling})
+end
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	self.url = msg.url()
+	self.panvect = vmath.vector3()
+	self.mousePos = vmath.vector3()
+	self.mouse_spos = vmath.vector3()
+	self.moving = false
+	self.scaling = false
+	table.insert(winman.zoom_listeners, self.url)
+end
+
+function on_input(self, action_id, action)
+	if not action_id then
+		if self.panning then
+			self.panvect.x = action.screen_dx * winman.zoom
+			self.panvect.y = action.screen_dy * winman.zoom
+			winman.set_cam_pos(winman.camPos - self.panvect)
+		end
+		self.mouse_spos.x = action.screen_x
+		self.mouse_spos.y = action.screen_y
+		update_mouse(self)
+	elseif action.pressed then
+		if action_id == hash("zoom in") then
+			msg.post("@render:", "zoom", {zoom = zoom})
+		elseif action_id == hash("zoom out") then
+			msg.post("@render:", "zoom", {zoom = 1/zoom})
+		elseif action_id == hash("pan") then
+			self.panning = true
+		elseif action_id == hash("escape") then
+			msg.post("@system:", "exit", {code = 0})
+		elseif action_id == hash("mouse click") then
+			self.moving = true
+		elseif action_id == hash("scale") then
+			self.scaling = true
+		end
+	elseif action.released then
+		if action_id == hash("pan") then
+			self.panning = false
+		elseif action_id == hash("mouse click") then
+			self.moving = false
+		elseif action_id == hash("scale") then
+			self.scaling = false
+		end
+	end
+end
+
+function on_message(self, message_id, message)
+	if message_id == hash("zoom") then
+		update_mouse(self)
+	end
+end

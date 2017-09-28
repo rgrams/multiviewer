@@ -1,0 +1,216 @@
+
+local winman = require "main.framework.window_manager"
+local util = require "main.framework.utilities"
+local proj_io = require "main.refs.project_io"
+local json_encoder = require "main.framework.json"
+
+local inputPath = "2.png"
+local scaleLineColor = vmath.vector4(1, 1, 1, 1)
+
+
+local function load_and_set_png(self, path, node)
+	local success = true
+
+	local t = socket.gettime()
+	local f = io.open(path, "rb")
+	local bytes = f:read("*a")
+	local png = image.load(bytes)
+	if png then
+		local channels = #png.buffer / (png.width * png.height)
+		gui.new_texture(path, png.width, png.height, string.sub("rgba", 1, channels), png.buffer)
+		gui.set_texture(node, path)
+		gui.set_size(node, vmath.vector3(png.width, png.height, 0))
+		print("Loading image number " .. #self.imageNodes .. " took " .. (socket.gettime() - t) * 1000 .. "ms")
+	else
+		print("ERROR: Failed to load: " .. path)
+		success = false
+	end
+	return success
+end
+
+local function new_node(pos, size)
+	pos = pos or winman.camPos
+	size = size or vmath.vector3(150, 100, 0)
+	local n = gui.new_box_node(pos, size)
+	return n
+end
+
+function init(self)
+	self.images = {}
+	self.imageNodes = {}
+	self.hoverNode = nil --{ n = false, i = 0 }
+	self.mousePos = vmath.vector3()
+	self.ctrl_pressed = false
+	msg.post(".", "acquire_input_focus")
+end
+
+local function move_z(self, index, dir)
+	local i2 = index + dir
+	if self.images[i2] then
+		if dir == 1 then
+			gui.move_above(self.images[index].node, self.images[i2].node)
+		else
+			gui.move_below(self.images[index].node, self.images[i2].node)
+		end
+		self.images[index].z, self.images[i2].z = self.images[i2].z, self.images[index].z
+		util.swap_elements(self.images, index, i2)
+		self.hoverNode.z = i2
+	end
+end
+
+local function create_ref(self, path, pos, size)
+	local n = new_node(pos)
+	if load_and_set_png(self, path, n) then
+		if pos then gui.set_position(n, pos)
+		else pos = gui.get_position(n)
+		end
+		if size then gui.set_size(n, size)
+		else size = gui.get_size(n)
+		end
+		local dat = {
+			node = n,
+			path = path,
+			z = #self.images + 1,
+			pos = { x = pos.x, y = pos.y },
+			size = { x = size.x, y = size.y }
+		}
+		table.insert(self.images, dat)
+	else
+		print("image load failed, deleting GUI node")
+		gui.delete_node(n)
+	end
+end
+
+local function open(self)
+	local code, files = diags.open_multiple()
+	print("Open multiple files - code = ", code)
+	pprint(files)
+	if code == 1 then
+		for i, path in ipairs(files) do
+			local ext = proj_io.get_file_extension(path)
+			if ext == proj_io.fileExt then
+				-- open project file
+				local images = proj_io.load_project_file(path)
+				for i, v in ipairs(images) do
+					local pos = vmath.vector3(v.pos.x, v.pos.y, 0)
+					local size = vmath.vector3(v.size.x, v.size.y, 0)
+					create_ref(self, v.path, pos, size)
+				end
+			else
+				create_ref(self, path)
+			end
+		end
+	end
+end
+
+local function save_project(self, path)
+	print("Saving project...")
+	path = proj_io.ensure_file_extension(path)
+	local f = io.open(path, "w+")
+	local imageData = util.deep_copy(self.images)
+	for i, v in ipairs(imageData) do
+		v.node = nil
+	end
+	local jsonStr = json_encoder.stringify(imageData)
+	print(jsonStr)
+	f:write(jsonStr)
+	f:close()
+end
+
+function on_input(self, action_id, action)
+	if action.pressed then
+		if action_id == hash("space") then
+			open(self)
+		elseif action_id == hash("ctrl") then
+			self.ctrl_pressed = true
+		elseif action_id == hash("o") then
+			if self.ctrl_pressed then
+				open(self)
+			end
+		elseif action_id == hash("s") then
+			if self.ctrl_pressed then
+				print("Save")
+				if #self.images > 0 then
+					local code, file = diags.save(proj_io.fileExt)
+					print("Save - ", code, file)
+					if code == 1 then
+						save_project(self, file)
+					end
+				else
+					print("Can't save project, no images loaded")
+				end
+			end
+		elseif action_id == hash("delete") then
+			if self.hoverNode then
+				util.find_remove(self.images, self.hoverNode)
+				gui.delete_node(self.hoverNode.node)
+				self.hoverNode = false
+			end
+		elseif action_id == hash("move up") then
+			if self.hoverNode then
+				move_z(self, self.hoverNode.z, 1)
+			end
+		elseif action_id == hash("move down") then
+			if self.hoverNode then
+				move_z(self, self.hoverNode.z, -1)
+			end
+		end
+	elseif action.released then
+		if action_id == hash("ctrl") then
+			self.ctrl_pressed = false
+		end
+	end
+end
+
+local function hit_check_node(node, x, y)
+	local hit = false
+	local pos = gui.get_position(node)
+	local size = gui.get_size(node)
+	local tl = (pos + size*0.5)
+	local br = (pos - size*0.5)
+	if x <= tl.x and x >= br.x and y <= tl.y and y >= br.y then
+		hit = true
+	end
+	return hit
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("update mouse") then
+		if self.hoverNode then
+			local delta = vmath.vector3(message.pos.x - self.mousePos.x, message.pos.y - self.mousePos.y, 0)
+			local pos = gui.get_position(self.hoverNode.node)
+			local size = gui.get_size(self.hoverNode.node)
+
+			if message.move then
+				local newpos = pos + delta
+				gui.set_position(self.hoverNode.node, newpos)
+				self.hoverNode.pos.x = newpos.x;  self.hoverNode.pos.y = newpos.y
+
+			end
+			if message.scale then
+				local amount = vmath.dot(vmath.normalize(message.pos - pos), delta) * 2
+				msg.post("@render:", "draw_line", { start_point = pos , end_point = message.pos, color = scaleLineColor })
+				local aspect = size.x / size.y
+				local ds = vmath.vector3(delta)
+				local avg = (ds.x + ds.y)
+				size.x = size.x + amount
+				size.y = size.x / aspect
+				gui.set_size(self.hoverNode.node, size)
+				self.hoverNode.size.x = size.x;  self.hoverNode.size.y = size.y
+			end
+		end
+		if not message.move and not message.scale then
+			self.hoverNode = false
+			for i, v in ipairs(self.images) do
+				gui.pick_node(v.node, message.pos.x, message.pos.y)
+				local hit = hit_check_node(v.node, message.pos.x, message.pos.y)
+				if hit then
+					self.hoverNode = v
+				end
+			end
+		end
+
+		self.mousePos.x = message.pos.x
+		self.mousePos.y = message.pos.y
+	end
+end

@@ -1,0 +1,60 @@
+key_trigger {
+  input: KEY_ESC
+  action: "escape"
+}
+key_trigger {
+  input: KEY_SPACE
+  action: "space"
+}
+key_trigger {
+  input: KEY_ENTER
+  action: "enter"
+}
+key_trigger {
+  input: KEY_DEL
+  action: "delete"
+}
+key_trigger {
+  input: KEY_PAGEUP
+  action: "move up"
+}
+key_trigger {
+  input: KEY_PAGEDOWN
+  action: "move down"
+}
+key_trigger {
+  input: KEY_LCTRL
+  action: "ctrl"
+}
+key_trigger {
+  input: KEY_RCTRL
+  action: "ctrl"
+}
+key_trigger {
+  input: KEY_O
+  action: "o"
+}
+key_trigger {
+  input: KEY_S
+  action: "s"
+}
+mouse_trigger {
+  input: MOUSE_BUTTON_LEFT
+  action: "mouse click"
+}
+mouse_trigger {
+  input: MOUSE_WHEEL_UP
+  action: "zoom in"
+}
+mouse_trigger {
+  input: MOUSE_WHEEL_DOWN
+  action: "zoom out"
+}
+mouse_trigger {
+  input: MOUSE_BUTTON_MIDDLE
+  action: "pan"
+}
+mouse_trigger {
+  input: MOUSE_BUTTON_RIGHT
+  action: "scale"
+}
