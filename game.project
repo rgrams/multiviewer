@@ -1,6 +1,6 @@
 [project]
 title = MultiViewer
-version = 1.2.2
+version = 1.2.3
 dependencies = https://github.com/andsve/def-diags/archive/master.zip
 
 [bootstrap]
