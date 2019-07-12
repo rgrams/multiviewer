@@ -1,5 +1,5 @@
 components {
-  id: "camera1"
+  id: "script"
   component: "/main/editor/camera.script"
   position {
     x: 0.0

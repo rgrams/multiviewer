@@ -90,11 +90,19 @@ local function open(self)
 			local ext = proj_io.get_file_extension(path)
 			if ext == proj_io.fileExt then
 				-- open project file
-				local images = proj_io.load_project_file(path)
+				local fileContents = proj_io.load_project_file(path)
+				local images = fileContents.images
+				if fileContents[i] then  images = fileContents  end -- Old format, images list only.
 				for i, v in ipairs(images) do
 					local pos = vmath.vector3(v.pos.x, v.pos.y, 0)
 					local size = vmath.vector3(v.size.x, v.size.y, 0)
 					create_ref(self, v.path, pos, size)
+				end
+				if fileContents.camera then
+					local camData = fileContents.camera
+					local camPos = vmath.vector3(camData.pos.x, camData.pos.y, 0)
+					msg.post("/camera#script", "set position", {pos = camPos}) -- Can't use go. functions to set it directly.
+					msg.post("@render:", "set_zoom", {zoom = camData.zoom})
 				end
 			else
 				create_ref(self, path)
@@ -111,8 +119,15 @@ local function save_project(self, path)
 	for i, v in ipairs(imageData) do
 		v.node = nil
 	end
-	local jsonStr = json_encoder.stringify(imageData)
-	print(jsonStr)
+	local camData = {
+		pos = { x = winman.camPos.x, y = winman.camPos.y },
+		zoom = winman.zoom,
+	}
+	local saveData = {
+		images = imageData,
+		camera = camData,
+	}
+	local jsonStr = json_encoder.stringify(saveData)
 	f:write(jsonStr)
 	f:close()
 end

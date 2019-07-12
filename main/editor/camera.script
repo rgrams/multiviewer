@@ -1,5 +1,14 @@
 
+local winman = require "main.framework.window_manager"
+local SET_POSITION = hash("set position")
 
 function init(self)
 	msg.post("#camera", "acquire_camera_focus")
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == SET_POSITION then
+		go.set_position(message.pos)
+		winman.camPos = message.pos
+	end
 end
