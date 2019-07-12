@@ -88,8 +88,8 @@ local function open(self)
 	if code == 1 then
 		for i, path in ipairs(files) do
 			local ext = proj_io.get_file_extension(path)
-			if ext == proj_io.fileExt then
-				-- open project file
+			if ext == proj_io.fileExt then -- Open project file.
+				self.projectPath = path
 				local fileContents = proj_io.load_project_file(path)
 				local images = fileContents.images
 				if fileContents[i] then  images = fileContents  end -- Old format, images list only.
@@ -104,7 +104,7 @@ local function open(self)
 					msg.post("/camera#script", "set position", {pos = camPos}) -- Can't use go. functions to set it directly.
 					msg.post("@render:", "set_zoom", {zoom = camData.zoom})
 				end
-			else
+			else -- Open image file.
 				create_ref(self, path)
 			end
 		end
@@ -138,6 +138,8 @@ function on_input(self, action_id, action)
 			open(self)
 		elseif action_id == hash("ctrl") then
 			self.ctrl_pressed = true
+		elseif action_id == hash("shift") then
+			self.shift_pressed = true
 		elseif action_id == hash("o") then
 			if self.ctrl_pressed then
 				open(self)
@@ -146,10 +148,15 @@ function on_input(self, action_id, action)
 			if self.ctrl_pressed then
 				print("Save")
 				if #self.images > 0 then
-					local code, file = diags.save(proj_io.fileExt)
-					print("Save - ", code, file)
-					if code == 1 then
-						save_project(self, file)
+					if self.projectPath and not self.shift_pressed then
+						print("\tSaving current project: ", self.projectPath)
+						save_project(self, self.projectPath)
+					else
+						local code, filePath = diags.save(proj_io.fileExt)
+						print("\tSaving as... ", code, filePath)
+						if code == 1 then
+							save_project(self, filePath)
+						end
 					end
 				else
 					print("Can't save project, no images loaded")
@@ -173,6 +180,8 @@ function on_input(self, action_id, action)
 	elseif action.released then
 		if action_id == hash("ctrl") then
 			self.ctrl_pressed = false
+		elseif action_id == hash("shift") then
+			self.shift_pressed = false
 		end
 	end
 end

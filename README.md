@@ -9,6 +9,7 @@ My MultiViewer is not meant to compete with those programs. It has only the most
 ### Controls
 * <kbd>Ctrl-O</kbd> or <kbd>Space</kbd> -- Open images or project files (.multiview)
 * <kbd>Ctrl-S</kbd> -- Save project
+* <kbd>Ctrl-Shift-S</kbd> -- Save project as...
 * <kbd>Left-Click-Drag</kbd> -- Move image
 * <kbd>Right-Click-Drag</kbd> -- Scale image
 * <kbd>Middle-Click-Drag</kbd> -- Pan Viewport
@@ -20,5 +21,4 @@ My MultiViewer is not meant to compete with those programs. It has only the most
 * Opening a .multiview file just adds in the saved images to your viewport, it won't remove any images you've already loaded.
 * Saving a project will record all the images you have open.
 * You don't have to type in the file extension when saving, it will add it on automatically if it's not there.
-* It doesn't remember project file names, you'll have to select the file again and overwrite it if you want to update a project.
 * You can open images and project files at the same time.
