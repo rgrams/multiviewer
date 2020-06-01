@@ -6,6 +6,10 @@ The two popular art reference viewers out there, Kuadro and PureRef, are cool, b
 
 My MultiViewer is not meant to compete with those programs. It has only the most basic features necessary for it to be useful: moving and scaling images and the viewport and saving and loading "projects"(groups of images). It doesn't support a lot of image types (progressive jpegs for example), only PNGs, most JPEGs, and GIFs (it won't animate them). I generally use it on my second monitor. Since it can't be "always on top" of other windows (without external software), it's probably not too useful if you only have one monitor like a normal person.
 
+[Defold forum thread here.](https://forum.defold.com/t/multi-image-viewer-tool/11991)
+
+[Demo .gif](https://forum.defold.com/uploads/default/original/2X/6/65b3bb071a006da7c834f519fa02b55646d410db.gif "A short gif of usage")
+
 ### Controls
 * <kbd>Ctrl-O</kbd> or <kbd>Space</kbd> -- Open images or project files (.multiview)
 * <kbd>Ctrl-S</kbd> -- Save project
