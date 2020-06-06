@@ -10,6 +10,8 @@ My MultiViewer is not meant to compete with those programs. It has only the most
 
 [Demo .gif](https://forum.defold.com/uploads/default/original/2X/6/65b3bb071a006da7c834f519fa02b55646d410db.gif "A short gif of usage")
 
+> NOTE: I have now rewritten this program in Love2D. Source repo here: https://github.com/rgrams/multiviewer-2
+
 ### Controls
 * <kbd>Ctrl-O</kbd> or <kbd>Space</kbd> -- Open images or project files (.multiview)
 * <kbd>Ctrl-S</kbd> -- Save project
